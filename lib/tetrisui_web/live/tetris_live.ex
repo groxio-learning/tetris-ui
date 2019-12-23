@@ -53,6 +53,7 @@ defmodule TetrisuiWeb.TetrisLive do
     """
     <svg 
     version="1.0" 
+    style="background-color: #F8F8F8"
     id="Layer_1" 
     xmlns="http://www.w3.org/2000/svg" 
     xmlns:xlink="http://www.w3.org/1999/xlink" 
@@ -85,7 +86,7 @@ defmodule TetrisuiWeb.TetrisLive do
     <rect 
       x="#{x+1}" y="#{y+1}" 
       style="fill:##{shade};" 
-      width="#{@box_width - 2}" height="#{@box_height - 2}"/>
+      width="#{@box_width - 2}" height="#{@box_height - 1}"/>
     """
   end
   def triangle(point, shade) do
