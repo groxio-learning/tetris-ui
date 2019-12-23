@@ -22,5 +22,30 @@ defmodule TetrisTest do
     assert actual == brick
   end
   
+  test "drops without merging" do
+    brick = Brick.new(location: {5, 5})
+    bottom = %{}
+    
+    expected = 
+      %{
+        block: Brick.down(brick),
+        bottom: %{}, 
+        score: 1
+      }
+      
+    actual = drop(brick, bottom, :red)
+    
+    assert actual == expected
+  end
+
+  test "drops and merges" do
+    brick = Brick.new(location: {5, 16})
+    bottom = %{}
+    
+    actual = Tetris.drop(brick, bottom, :red)
+    
+    assert Map.get(actual.bottom, {7, 20}) == {7, 20, :red}
+  end
+  
 
 end
