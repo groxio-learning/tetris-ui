@@ -2,6 +2,7 @@ defmodule TetrisuiWeb.TetrisLive do
   use Phoenix.LiveView
   import Phoenix.HTML, only: [raw: 1]
   
+  @debug true
   @box_width 20
   @box_height 20
 
@@ -17,13 +18,15 @@ defmodule TetrisuiWeb.TetrisLive do
         <%= raw boxes(@tetromino) %>
         <%= raw svg_foot() %>
       </div>
+      <%= debug(assigns) %>
     """
   end
   
   defp new_game(socket) do
     assign(socket, 
       state: :playing, 
-      score: 0
+      score: 0, 
+      bottom: %{}
     )
     |> new_block
     |> show
@@ -32,7 +35,7 @@ defmodule TetrisuiWeb.TetrisLive do
   def new_block(socket) do
     brick = 
       Tetris.Brick.new_random()
-      |> Map.put(:location, {3, 1})
+      |> Map.put(:location, {3, -3})
     
     assign(socket, brick: brick)
   end
@@ -100,7 +103,7 @@ defmodule TetrisuiWeb.TetrisLive do
     """
   end
   
-  defp to_pixels({x, y}), do: {x * @box_width, y * @box_height}
+  defp to_pixels({x, y}), do: {(x-1) * @box_width, (y-1) * @box_height}
   
   defp shades(:red), do:    %{ light: "DB7160", dark: "AB574B"}
   defp shades(:blue), do:   %{ light: "83C1C8", dark: "66969C"}
@@ -114,6 +117,11 @@ defmodule TetrisuiWeb.TetrisLive do
   defp color(%{name: :o}), do: :orange
   defp color(%{name: :z}), do: :grey
   
+  def drop(socket) do
+    socket
+    |> assign(brick: socket.assigns.brick |> Tetris.Brick.down)  
+    |> show
+  end
   
   def move(direction, socket) do
     socket
@@ -121,14 +129,14 @@ defmodule TetrisuiWeb.TetrisLive do
     |> show
   end
   
-  def do_move(socket, :left) do
-    assign(socket, brick: socket.assigns.brick |> Tetris.try_left(%{}))
+  def do_move(%{assigns: %{brick: brick, bottom: bottom}}=socket, :left) do
+    assign(socket, brick: brick |> Tetris.try_left(bottom))
   end
-  def do_move(socket, :right) do
-    assign(socket, brick: socket.assigns.brick |> Tetris.try_right(%{}))
+  def do_move(%{assigns: %{brick: brick, bottom: bottom}}=socket, :right) do
+    assign(socket, brick: brick |> Tetris.try_right(bottom))
   end
-  def do_move(socket, :turn) do
-    assign(socket, brick: socket.assigns.brick |> Tetris.try_spin_90(%{}))
+  def do_move(%{assigns: %{brick: brick, bottom: bottom}}=socket, :turn) do
+    assign(socket, brick: socket.assigns.brick |> Tetris.try_spin_90(bottom))
   end
 
   def handle_event("keydown", %{"key" => "ArrowLeft"}, socket) do
@@ -140,6 +148,19 @@ defmodule TetrisuiWeb.TetrisLive do
   def handle_event("keydown", %{"key" => "ArrowUp"}, socket) do
     {:noreply, move(:turn, socket)}
   end
+  def handle_event("keydown", %{"key" => "ArrowDown"}, socket) do
+    {:noreply, drop(socket)}
+  end
   def handle_event("keydown", _, socket), do: {:noreply, socket}
 
+  def debug(assigns), do: debug(assigns, @debug, Mix.env)
+  def debug(assigns, true, :dev) do
+    ~L"""
+    <pre>
+    <%= raw( @tetromino |> inspect) %>
+    </pre>
+    """
+  end
+  def debug(assigns, _, _), do: ""
+  
 end
