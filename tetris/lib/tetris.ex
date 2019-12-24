@@ -32,7 +32,7 @@ defmodule Tetris do
       |> Bottom.full_collapse
       
     %{
-      block: Brick.new_random, 
+      brick: Brick.new_random, 
       bottom: new_bottom,
       score: score(count)
     }
@@ -40,14 +40,15 @@ defmodule Tetris do
   
   def maybe_do_drop(false=_collided, bottom, _old_block, new_block, _color) do
     %{
-      block: new_block, 
+      brick: new_block, 
       bottom: bottom,
       score: 1
     }
   end
   
+  def score(0), do: 0
   def score(count) do
-    100 * round(:math.pow(2 ** count))
+    100 * round(:math.pow(2, count))
   end
   
   def try_left(brick, bottom), do: try_move(brick, bottom, &Brick.left/1)

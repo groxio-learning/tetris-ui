@@ -28,7 +28,7 @@ defmodule TetrisTest do
     
     expected = 
       %{
-        block: Brick.down(brick),
+        brick: Brick.down(brick),
         bottom: %{}, 
         score: 1
       }
@@ -42,9 +42,25 @@ defmodule TetrisTest do
     brick = Brick.new(location: {5, 16})
     bottom = %{}
     
-    actual = Tetris.drop(brick, bottom, :red)
+    %{score: score, bottom: bottom} = Tetris.drop(brick, bottom, :red)
     
-    assert Map.get(actual.bottom, {7, 20}) == {7, 20, :red}
+    assert Map.get(bottom, {7, 20}) == {7, 20, :red}
+    assert score == 0
+  end
+  
+  test "drops to bottom and compresses" do
+    brick = Brick.new(location: {5, 16})
+    bottom = 
+      for x <- 1..10, y <- 17..20, x != 7 do
+        {{x, y}, {x, y, :red}}
+      end
+      |> Map.new
+    
+    %{score: score, bottom: bottom } = 
+      Tetris.drop(brick, bottom, :red)
+        
+    assert bottom == %{}
+    assert score == 1600
   end
   
 
