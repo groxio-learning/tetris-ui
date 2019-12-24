@@ -51,8 +51,11 @@ defmodule Tetris.Bottom do
   end
   
   def full_collapse(bottom) do
-    bottom 
-    |> complete_ys
-    |> Enum.reduce(bottom, &collapse_row(&2, &1))
+    rows = complete_ys(bottom)
+    
+    new_bottom = 
+      Enum.reduce(rows, bottom, &collapse_row(&2, &1))
+    
+    {Enum.count(rows), new_bottom}
   end
 end
