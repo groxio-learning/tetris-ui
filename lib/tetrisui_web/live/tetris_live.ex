@@ -2,9 +2,7 @@ defmodule TetrisuiWeb.TetrisLive do
   use Phoenix.LiveView
   import Phoenix.HTML, only: [raw: 1]
   
-  @debug true
-  @box_width 20
-  @box_height 20
+  @debug false
 
   def mount(_session, socket) do
     :timer.send_interval 250, self(), :tick
@@ -17,8 +15,15 @@ defmodule TetrisuiWeb.TetrisLive do
       <h1><%= @score %><h1>
       <div phx-keydown="keydown" phx-target="window">
         <%= raw svg_head() %>
-        <%= raw boxes(@tetromino) %>
-        <%= raw boxes(Map.values(@bottom)) %>
+        <%= for row <- [@tetromino, Map.values(@bottom)] do %> 
+          <%= for {x, y, color} <- row do %>
+            <% {x, y} = to_pixels( {x, y}, @box_width, @box_height ) %> 
+            <rect 
+              x="<%= x+1 %>" y="<%= y+1 %>" 
+              style="fill:#<%= shades(color).light %>;" 
+              width="<%= @box_width - 2 %>" height="<%= @box_height - 1 %>"/>
+            <%= end %>
+        <%= end %>
         <%= raw svg_foot() %>
       </div>
       <%= debug(assigns) %>
@@ -41,7 +46,9 @@ defmodule TetrisuiWeb.TetrisLive do
   
   defp start_game(socket) do
     assign(socket, 
-      state: :starting
+      state: :starting, 
+      box_width: 20, 
+      box_height: 20
     )
   end
 
@@ -107,7 +114,7 @@ defmodule TetrisuiWeb.TetrisLive do
     """
   end
   def square(point, shade) do
-    {x, y} = to_pixels(point)
+    {x, y} = to_pixels(point, 20, 20)
     """
     <rect 
       x="#{x+1}" y="#{y+1}" 
@@ -116,7 +123,7 @@ defmodule TetrisuiWeb.TetrisLive do
     """
   end
   def triangle(point, shade) do
-    {x, y} = to_pixels(point)
+    {x, y} = to_pixels(point, 20, 20)
     {w, h} = {@box_width, @box_height}
     
     """
@@ -126,7 +133,7 @@ defmodule TetrisuiWeb.TetrisLive do
     """
   end
   
-  defp to_pixels({x, y}), do: {(x-1) * @box_width, (y-1) * @box_height}
+  defp to_pixels({x, y}, bw, bh), do: {(x-1) * bw, (y-1) * bh}
   
   defp shades(:red), do:    %{ light: "DB7160", dark: "AB574B"}
   defp shades(:blue), do:   %{ light: "83C1C8", dark: "66969C"}
